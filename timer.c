@@ -86,8 +86,8 @@ timer_elapsed (int64_t then)
 
 /* Sleeps for approximately TICKS timer ticks.  Interrupts must
    be turned on. */
-void
-timer_sleep (int64_t ticks)  /* timer_sleep */
+void 
+timer_sleep (int64_t ticks)  /* timer_sleep, change in here */
 {
   int64_t start = timer_ticks (); /* call timer_ticks, line 71 */
 
