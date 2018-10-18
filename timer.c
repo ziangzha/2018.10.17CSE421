@@ -97,7 +97,10 @@ timer_sleep (int64_t ticks)  /* timer_sleep, change in here */
   /* while (timer_elapsed (start) < ticks) 
     thread_yield (); */
   enum intr_level old_level = intr_disable (); 
-  
+  struct thread *imathread = thread_current();
+  imathread->ticks_blocked_time = ticks;
+  ticks_blocked_time();
+  intr_set_level (old_level);
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
