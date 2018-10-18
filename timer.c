@@ -86,11 +86,10 @@ timer_elapsed (int64_t then)
 
 /* Sleeps for approximately TICKS timer ticks.  Interrupts must
    be turned on. */
-/* timer_sleep */
 void
-timer_sleep (int64_t ticks) 
+timer_sleep (int64_t ticks)  /* timer_sleep */
 {
-  int64_t start = timer_ticks ();
+  int64_t start = timer_ticks (); /* call timer_ticks, line 71 */
 
   ASSERT (intr_get_level () == INTR_ON);
   while (timer_elapsed (start) < ticks) 
