@@ -20,8 +20,8 @@
 /* Number of timer ticks since OS booted. */
 static int64_t ticks;
 
-/* Use ticks_blocked_time to record the sleeped time */
-int64_t ticks_blocked_time;
+/* Use wakeup_time to record the sleeped time and determine when can "wake up" */
+int64_t wakeup_time;
 
 /* Number of loops per timer tick.
    Initialized by timer_calibrate(). */
