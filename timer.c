@@ -100,8 +100,9 @@ timer_sleep (int64_t ticks)  /* timer_sleep, change in here */
   /* while (timer_elapsed (start) < ticks) 
     thread_yield (); */
   enum intr_level old_level = intr_disable (); 
-  struct thread *imathread = thread_current();
-  imathread->ticks_blocked_time = ticks; /* add ticks_blocked_time to know the recording time (sleep) */
+  struct thread *sleeping_list = thread_current();
+  sleeping_list->wakeup_time = ticks; /* add wakeup_time to know the recording time (sleep) 
+                                      and when the "sleeping" target thread can be "wake up" */
   thread_block ();
   intr_set_level (old_level);
 }
