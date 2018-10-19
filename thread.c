@@ -176,7 +176,7 @@ thread_create (const char *name, int priority,
 
   /* Allocate thread. */
   t = palloc_get_page (PAL_ZERO);
-  t->ticks_blocked_time = 0; /* Initialize ticks_blocked_time = 0 */
+  t->wakeup_time = 0; /* Initialize wakeup_time = 0 */
   if (t == NULL)
     return TID_ERROR;
 
@@ -335,7 +335,12 @@ thread_foreach (thread_action_func *func, void *aux)
 /* Add this function to determine when the “sleeping” target thread can be “wake up” */
 void
 timer_sleeping_thread(struct thread *t, void *aux UNUSED){
-   
+   if(t->wakeup_time > 0 && t->status == THREAD_BLOCKED){
+      t->wakeup_time = wakeup_time - 1;
+      if(t->wakeup_time == 0){
+         thread_unblock(t);
+      }
+   }
 }
 
 /* Sets the current thread's priority to NEW_PRIORITY. */
