@@ -176,6 +176,7 @@ thread_create (const char *name, int priority,
 
   /* Allocate thread. */
   t = palloc_get_page (PAL_ZERO);
+  t->ticks_blocked_time = 0; /* Initialize ticks_blocked_time = 0 */
   if (t == NULL)
     return TID_ERROR;
 
