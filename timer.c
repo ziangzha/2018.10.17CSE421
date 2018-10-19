@@ -21,7 +21,7 @@
 static int64_t ticks;
 
 /* Use wakeup_time to record the sleeped time and determine when can "wake up" */
-int64_t wakeup_time;
+/* int64_t wakeup_time; */
 
 /* Number of loops per timer tick.
    Initialized by timer_calibrate(). */
