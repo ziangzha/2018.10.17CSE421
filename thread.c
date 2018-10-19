@@ -72,7 +72,7 @@ void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 
 /* Use wakeup_time to record the sleeped time and determine when can "wake up" */
-int64_t wakeup_time;
+/* int64_t wakeup_time; */
 
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
@@ -170,6 +170,8 @@ thread_create (const char *name, int priority,
                thread_func *function, void *aux) 
 {
   struct thread *t;
+   /* Use wakeup_time to record the sleeped time and determine when can "wake up" */
+   int64_t wakeup_time;
   struct kernel_thread_frame *kf;
   struct switch_entry_frame *ef;
   struct switch_threads_frame *sf;
