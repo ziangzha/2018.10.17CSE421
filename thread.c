@@ -332,6 +332,12 @@ thread_foreach (thread_action_func *func, void *aux)
     }
 }
 
+/* Add this function to determine when the “sleeping” target thread can be “wake up” */
+void
+timer_sleeping_thread(struct thread *t, void *aux UNUSED){
+   
+}
+
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void
 thread_set_priority (int new_priority) 
