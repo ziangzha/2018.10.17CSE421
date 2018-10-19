@@ -20,6 +20,9 @@
 /* Number of timer ticks since OS booted. */
 static int64_t ticks;
 
+/* Use ticks_blocked_time to record the sleeped time */
+int64_t ticks_blocked_time;
+
 /* Number of loops per timer tick.
    Initialized by timer_calibrate(). */
 static unsigned loops_per_tick;
@@ -98,8 +101,8 @@ timer_sleep (int64_t ticks)  /* timer_sleep, change in here */
     thread_yield (); */
   enum intr_level old_level = intr_disable (); 
   struct thread *imathread = thread_current();
-  imathread->ticks_blocked_time = ticks;
-  ticks_blocked_time();
+  imathread->ticks_blocked_time = ticks; /* add ticks_blocked_time to know the recording time (sleep) */
+  thread_block ();
   intr_set_level (old_level);
 }
 
@@ -179,6 +182,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
+  thread_foreach(timer_sleeping_thread, NULL);
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
