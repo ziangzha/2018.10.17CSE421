@@ -339,7 +339,7 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 timer_sleeping_thread(struct thread *t, void *aux UNUSED){
    if(t->wakeup_time > 0 && t->status == THREAD_BLOCKED){
-      t->wakeup_time = wakeup_time - 1;
+      t->wakeup_time--;
       if(t->wakeup_time == 0){
          thread_unblock(t);
       }
