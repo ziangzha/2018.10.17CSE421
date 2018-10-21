@@ -37,6 +37,8 @@ static struct thread *initial_thread;
 /* Lock used by allocate_tid(). */
 static struct lock tid_lock;
 
+// add global varible load_avg
+double_Type load_avg;
 /* Stack frame for kernel_thread(). */
 struct kernel_thread_frame 
   {
@@ -108,6 +110,7 @@ thread_init (void)
 void
 thread_start (void) 
 {
+  load_avg = DC_CONVER(0);
   /* Create the idle thread. */
   struct semaphore idle_started;
   sema_init (&idle_started, 0);
@@ -375,31 +378,36 @@ thread_get_priority (void)
 void
 thread_set_nice (int nice UNUSED) 
 {
-  /* Not yet implemented. */
+  /* implemented. */
+  thread_current ()->nice = nice;
+  thread_mlfqs_update(thread_current ());
+  thread_yield ();
 }
+
+
 
 /* Returns the current thread's nice value. */
 int
 thread_get_nice (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  /* implemented. */
+  return thread_current ()->nice;
 }
 
 /* Returns 100 times the system load average. */
 int
 thread_get_load_avg (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  /* Implemented. */
+  return DC_ROUND(FP_MULT_MIX (load_avg, 100));
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
 int
 thread_get_recent_cpu (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  /* Implemented. */
+  return DC_ROUND(DC_MULTWITHINT(thread_current ()->recent_cpu, 100));
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
@@ -477,6 +485,8 @@ is_thread (struct thread *t)
 static void
 init_thread (struct thread *t, const char *name, int priority)
 {
+  t->nice = 0;
+  t->recent_cpu = DC_CONVER(0);
   enum intr_level old_level;
 
   ASSERT (t != NULL);
