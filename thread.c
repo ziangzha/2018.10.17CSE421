@@ -37,8 +37,6 @@ static struct thread *initial_thread;
 /* Lock used by allocate_tid(). */
 static struct lock tid_lock;
 
-// add global varible load_avg
-double_Type load_avg;
 /* Stack frame for kernel_thread(). */
 struct kernel_thread_frame 
   {
@@ -72,6 +70,9 @@ static void *alloc_frame (struct thread *, size_t size);
 static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
+
+/* Use wakeup_time to record the sleeped time and determine when can "wake up" */
+/* int64_t wakeup_time; */
 
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
@@ -107,7 +108,6 @@ thread_init (void)
 void
 thread_start (void) 
 {
-  load_avg = DC_CONVER(0);
   /* Create the idle thread. */
   struct semaphore idle_started;
   sema_init (&idle_started, 0);
@@ -179,6 +179,7 @@ thread_create (const char *name, int priority,
 
   /* Allocate thread. */
   t = palloc_get_page (PAL_ZERO);
+  t->wakeup_time = 0; /* Initialize wakeup_time = 0 */
   if (t == NULL)
     return TID_ERROR;
 
@@ -203,8 +204,18 @@ thread_create (const char *name, int priority,
 
   /* Add to run queue. */
   thread_unblock (t);
+   
+  if(priority > thread_current()->priority){
+     thread_yield();
+  }
 
   return tid;
+}
+
+/* Compare the priority */
+bool
+compare_priority(const struct list_elem *xxx, const struct list_elem *yyy, void *aux UNUSED){
+   return list_entry(xxx, struct thread, elem)->priority > list_entry(yyy, struct thread, elem)->priority;
 }
 
 /* Puts the current thread to sleep.  It will not be scheduled
@@ -240,7 +251,7 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  list_push_back (&ready_list, &t->elem);
+  list_insert_ordered(&ready_list, &t->elem, (list_less_func *) &compare_priority, NULL);
   t->status = THREAD_READY;
   intr_set_level (old_level);
 }
@@ -311,7 +322,7 @@ thread_yield (void)
 
   old_level = intr_disable ();
   if (cur != idle_thread) 
-    list_push_back (&ready_list, &cur->elem);
+    list_insert_ordered(&ready_list, &cur->elem, (list_less_func *) &compare_priority, NULL);
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
@@ -334,11 +345,23 @@ thread_foreach (thread_action_func *func, void *aux)
     }
 }
 
+/* Add this function to determine when the “sleeping” target thread can be “wake up” */
+void
+timer_sleeping_thread(struct thread *t, void *aux UNUSED){
+   if(t->wakeup_time > 0 && t->status == THREAD_BLOCKED){
+      t->wakeup_time--;
+      if(t->wakeup_time == 0){
+         thread_unblock(t);
+      }
+   }
+}
+
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void
 thread_set_priority (int new_priority) 
 {
   thread_current ()->priority = new_priority;
+  thread_yield();
 }
 
 /* Returns the current thread's priority. */
@@ -352,36 +375,31 @@ thread_get_priority (void)
 void
 thread_set_nice (int nice UNUSED) 
 {
-  /* implemented. */
-  thread_current ()->nice = nice;
-  thread_mlfqs_update(thread_current ());
-  thread_yield ();
+  /* Not yet implemented. */
 }
-
-
 
 /* Returns the current thread's nice value. */
 int
 thread_get_nice (void) 
 {
-  /* implemented. */
-  return thread_current ()->nice;
+  /* Not yet implemented. */
+  return 0;
 }
 
 /* Returns 100 times the system load average. */
 int
 thread_get_load_avg (void) 
 {
-  /* Implemented. */
-  return DC_ROUND(FP_MULT_MIX (load_avg, 100));
+  /* Not yet implemented. */
+  return 0;
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
 int
 thread_get_recent_cpu (void) 
 {
-  /* Implemented. */
-  return DC_ROUND(DC_MULTWITHINT(thread_current ()->recent_cpu, 100));
+  /* Not yet implemented. */
+  return 0;
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
@@ -459,8 +477,6 @@ is_thread (struct thread *t)
 static void
 init_thread (struct thread *t, const char *name, int priority)
 {
-  t->nice = 0;
-  t->recent_cpu = DC_CONVER(0);
   enum intr_level old_level;
 
   ASSERT (t != NULL);
@@ -475,7 +491,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->magic = THREAD_MAGIC;
 
   old_level = intr_disable ();
-  list_push_back (&all_list, &t->allelem);
+  list_insert_ordered(&all_list, &t->allelem, (list_less_func *) &compare_priority, NULL);
   intr_set_level (old_level);
 }
 
