@@ -20,9 +20,6 @@
 /* Number of timer ticks since OS booted. */
 static int64_t ticks;
 
-/* Use wakeup_time to record the sleeped time and determine when can "wake up" */
-/* int64_t wakeup_time; */
-
 /* Number of loops per timer tick.
    Initialized by timer_calibrate(). */
 static unsigned loops_per_tick;
@@ -93,21 +90,14 @@ void
 timer_sleep (int64_t ticks)  /* timer_sleep, change in here */
 {
   /* int64_t start = timer_ticks (); */ /* call timer_ticks, line 71 */
-  if (ticks <= 0) {
+  if (tick <= 0) {
     return;
   }
   ASSERT (intr_get_level () == INTR_ON);
   /* while (timer_elapsed (start) < ticks) 
     thread_yield (); */
   enum intr_level old_level = intr_disable (); 
-
   
-  struct thread *sleeping_list = thread_current();
-  sleeping_list->wakeup_time = ticks; /* add wakeup_time to know the recording time (sleep) 
-                                      and when the "sleeping" target thread can be "wake up" */
-  thread_block ();
-  intr_set_level (old_level);
-
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -202,7 +192,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
            if (thread_current () != idle_thread){
                   ready_threads++;
            }
-           load_avg = FP_ADD (FP_DIV_MIX (DC_MULTWITHINT(load_avg, 59), 60), DC_DIVWITHINT(DC_CONVER(ready_threads), 60));
+           load_avg = DC_ADD (DC_DIVWITHINT (DC_MULTWITHINT(load_avg, 59), 60), DC_DIVWITHINT(DC_CONVER(ready_threads), 60));
 
            struct thread *t;
            struct list_elem *e = list_begin (&all_list);
@@ -221,7 +211,6 @@ timer_interrupt (struct intr_frame *args UNUSED)
        }
   ticks++;
   thread_tick ();
-  thread_foreach(timer_sleeping_thread, NULL);
 }
 
 void
