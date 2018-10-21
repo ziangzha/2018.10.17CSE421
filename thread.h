@@ -90,13 +90,10 @@ struct thread
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
     //add new thing recent_cpu and nice
-    double_Type recent_cpu;
+    fixed_t recent_cpu;
     int nice;
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
-  
-    /* Use wakeup_time to record the sleeped time and determine when can "wake up" */
-    int64_t wakeup_time;
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
@@ -142,7 +139,5 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
-
-void timer_sleeping_thread(struct thread *t, void *aux UNUSED);
 
 #endif /* threads/thread.h */
