@@ -91,6 +91,7 @@ struct thread
     struct list_elem allelem;           /* List element for all threads list. */
     //add new thing recent_cpu and nice
     int fixed_t recent_cpu;
+ 
     int nice;
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
