@@ -12,7 +12,7 @@
  #define DC_MULT(X,Y) (X * Y)
  #define DC_MULTWITHINT(X,Y) ((fixed_t)(((int64_t) X) * Y >> DC_DOUBLE_AMOUNT))
  #define DC_DIV(X,Y) (X / Y)
- #define DC_DIVWITHINT(X,Y) ((fixed_t)((((int64_t) A) << DC_DOUBLE_AMOUNT) / B))
+ #define DC_DIVWITHINT(X,Y) ((fixed_t)((((int64_t) X) << DC_DOUBLE_AMOUNT) / Y))
  #define DC_ONLYINT(X) (X >> DC_DOUBLE_AMOUNT)
  #define DC_ROUND(X) (X >= 0 ? ((X + (1 << (DC_DOUBLE_AMOUNT - 1))) >> DC_DOUBLE_AMOUNT) \
          : ((X - (1 << (DC_DOUBLE_AMOUNT - 1))) >> DC_DOUBLE_AMOUNT))

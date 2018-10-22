@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include "threads/floatPoint_Calc.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -92,7 +93,8 @@ struct thread
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
-  
+    int recent_cpu;
+    int nice;
     /* Use wakeup_time to record the sleeped time and determine when can "wake up" */
     int64_t wakeup_time;
 
