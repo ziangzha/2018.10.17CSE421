@@ -38,7 +38,7 @@ static struct thread *initial_thread;
 static struct lock tid_lock;
 
 // add global varible load_avg
-int load_avg;
+int load_avg; 
 /* Stack frame for kernel_thread(). */
 struct kernel_thread_frame 
   {
