@@ -19,6 +19,10 @@
 
 /* Number of timer ticks since OS booted. */
 static int64_t ticks;
+static struct thread *idle_thread;
+int load_avg;
+/* Use wakeup_time to record the sleeped time and determine when can "wake up" */
+/* int64_t wakeup_time; */
 
 /* Number of loops per timer tick.
    Initialized by timer_calibrate(). */
@@ -90,14 +94,18 @@ void
 timer_sleep (int64_t ticks)  /* timer_sleep, change in here */
 {
   /* int64_t start = timer_ticks (); */ /* call timer_ticks, line 71 */
-  if (tick <= 0) {
+  if (ticks <= 0) {
     return;
   }
   ASSERT (intr_get_level () == INTR_ON);
   /* while (timer_elapsed (start) < ticks) 
     thread_yield (); */
   enum intr_level old_level = intr_disable (); 
-  
+  struct thread *sleeping_list = thread_current();
+  sleeping_list->wakeup_time = ticks; /* add wakeup_time to know the recording time (sleep) 
+                                      and when the "sleeping" target thread can be "wake up" */
+  thread_block ();
+  intr_set_level (old_level);
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -175,56 +183,30 @@ static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
   if (thread_mlfqs == true){
-     //inside first if
+    //inside first if
     ASSERT (thread_mlfqs);
     ASSERT (intr_context ());
-       struct thread *current_thread = thread_current ();
-          if (current_thread == idle_thread){
-           return;
-          }
-       current_thread-> recent_cpu = DC_ADDWITHINT(current_thread->recent_cpu, 1);
+    struct thread *sleeping_list = thread_current ();
+    if (sleeping_list == idle_thread){
+      return;
+    }
+    sleeping_list-> recent_cpu = DC_ADDWITHINT(sleeping_list->recent_cpu, 1);
     //first if completed
-         if (ticks % TIMER_FREQ == 0){
-           //inside second if
-           ASSERT (thread_mlfqs);
-           ASSERT (intr_context ());
-           size_t ready_threads = list_size (&ready_list);
-           if (thread_current () != idle_thread){
-                  ready_threads++;
-           }
-           load_avg = DC_ADD (DC_DIVWITHINT (DC_MULTWITHINT(load_avg, 59), 60), DC_DIVWITHINT(DC_CONVER(ready_threads), 60));
-
-           struct thread *t;
-           struct list_elem *e = list_begin (&all_list);
-           for (; e != list_end (&all_list); e = list_next (e)){
-                  t = list_entry(e, struct thread, allelem);
-                  if (t != idle_thread){
-                      t->recent_cpu = DC_ADDWITHINT(DC_MULT(DC_DIV(DC_MULTWITHINT(load_avg, 2), DC_ADDWITHINT(DC_MULTWITHINT (load_avg, 2), 1)), t->recent_cpu), t->nice);
-                      //last STATEMENT
-                      thread_mlfqs_update();
-                // second statement end
-         } else if (ticks % 4 == 0){
-              thread_mlfqs_update(thread_current ());
+    if (ticks % TIMER_FREQ == 0) {
+      //inside second if
+      thread_mlfqs_updateavgAndcpu();
+          // second statement end
+        }else if (ticks % 4 == 0){
+        thread_mlfqs_update(thread_current ());
+      }
+    }
+    // end with this loop
   }
-}
-       // end with this loop
-       }
   ticks++;
   thread_tick ();
+  thread_foreach(timer_sleeping_thread, NULL);
 }
 
-void
-thread_mlfqs_update (struct thread *t)
-{
-   if (t == idle_thread){
-     return;
-   }
-   ASSERT (thread_mlfqs);
-   ASSERT (t != idle_thread);
-   t->priority = DC_ONLYINT(DC_SUBWITHINT(DC_SUB (DC_CONVER (PRI_MAX), DC_DIVWITHINT(t->recent_cpu, 4)), 2 * t->nice));
-   t->priority = t->priority < PRI_MIN ? PRI_MIN : t->priority;
-   t->priority = t->priority > PRI_MAX ? PRI_MAX : t->priority;
-}
 
 /* Returns true if LOOPS iterations waits for more than one timer
    tick, otherwise false. */
