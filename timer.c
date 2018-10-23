@@ -9,7 +9,6 @@
 #include "threads/thread.h"
 #include "threads/floatPoint_Calc.h"
 
-  
 /* See [8254] for hardware details of the 8254 timer chip. */
 
 #if TIMER_FREQ < 19
@@ -29,7 +28,8 @@ int load_avg;
 /* Number of loops per timer tick.
    Initialized by timer_calibrate(). */
 static unsigned loops_per_tick;
-
+static struct list ready_list;
+static struct list all_list;
 static intr_handler_func timer_interrupt;
 static bool too_many_loops (unsigned loops);
 static void busy_wait (int64_t loops);
